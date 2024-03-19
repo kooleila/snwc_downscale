@@ -9,7 +9,7 @@ RUN dnf -y install dnf-plugins-core && \
     dnf -y --setopt=install_weak_deps=False install python39 python39-pip python39-setuptools eccodes git && \
     dnf -y clean all && rm -rf /var/cache/dnf
 
-RUN git clone https://github.com/fmidev/snwc_downscale.git
+RUN git clone https://github.com/kooleila/snwc_downscale.git
 
 WORKDIR /snwc_downscale
 
