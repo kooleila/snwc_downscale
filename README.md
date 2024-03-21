@@ -3,8 +3,8 @@ Can be used to test producing obs analysis/snwc bias correction in 1km resolutio
 
 ## Usage 
 ```
-run biasc_downscale.sh WS # T2m, RH or WG
-OR for just observation analysis  
+sh run_biasc_downscale.sh WS # T2m, RH or WG
+OR for just observation analysis use  
 sh run_lsm_gridpp.sh WS # T2m, RH or WG
 ```
 * Heavily relies on data only available at FMI.   
