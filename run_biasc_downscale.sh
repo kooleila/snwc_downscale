@@ -19,16 +19,16 @@ echo $NN
 
 if [ "$parameter" == "T2m" ]; then
   pyparam="temperature"
-  s3cmd get "$bucket""$NN"00/T-K.grib2 #/data/hietal/testi/T-K.grib2
+  #s3cmd get "$bucket""$NN"00/T-K.grib2 #/data/hietal/testi/T-K.grib2
 elif [ "$parameter" == "RH" ]; then
   pyparam="humidity"
-  s3cmd get "$bucket""$NN"00/RH-0TO1.grib2 #/data/hietal/testi/RH-0TO1.grib2
+  #s3cmd get "$bucket""$NN"00/RH-0TO1.grib2 #/data/hietal/testi/RH-0TO1.grib2
 elif [ "$parameter" == "WS" ]; then
   pyparam="windspeed"
-  s3cmd get "$bucket""$NN"00/FF-MS.grib2 #/data/hietal/testi/FF-MS.grib2
+  #s3cmd get "$bucket""$NN"00/FF-MS.grib2 #/data/hietal/testi/FF-MS.grib2
 elif [ "$parameter" == "WG" ]; then
   pyparam="gust"
-  s3cmd get "$bucket""$NN"00/FFG-MS.grib2 #/data/hietal/testi/FFG-MS.grib2
+  #s3cmd get "$bucket""$NN"00/FFG-MS.grib2 #/data/hietal/testi/FFG-MS.grib2
 else
   echo "parameter must be T2m, RH, WS or WG"
   exit 1

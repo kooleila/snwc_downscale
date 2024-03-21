@@ -44,6 +44,7 @@ def parse_command_line():
     parser.add_argument("--nl_data", action="store", type=str, required=True)
     parser.add_argument("--dem_data", action="store", type=str, default="DEM_100m-Int16.tif")
     parser.add_argument("--dem_downs", action="store", type=str, default="elev_100m_1000m.nc")
+    parser.add_argument("--lsm_downs", action="store", type=str, default="maa_meri_lcc_1000.nc")
     parser.add_argument("--output", action="store", type=str, required=True)
     parser.add_argument("--plot", action="store_true", default=False)
     parser.add_argument("--disable_multiprocessing", action="store_true", default=False)
@@ -475,10 +476,6 @@ def main():
 
     # preprocess data
     ml_data = modify(data, args.parameter)
-    print(ml_data.columns)
-    print(ml_data.head(5))
-    print(ml_data.shape)
-    print(len(ml_data))
 
     # Produce ML forecast for all the leadtimes
     ml_fcst = ml_forecast(ml_data, args.parameter)
@@ -486,7 +483,7 @@ def main():
     timedif = mlt - ot
     print("Producing ML forecasts takes:", round(timedif, 1), "seconds")
     #####
-    # use 1km dem in gridding!
+    # use 1km dem and lsm in gridding!
     #####
     nc_file = nc.Dataset(args.dem_downs, 'r')
     # Access latitude, longitude, and elevation data
@@ -522,11 +519,38 @@ def main():
     plt.ylabel('Latitude')
     plt.savefig("dem.png")
     """
+
+    ###LSM in 1km 0/1
+    lc_file = nc.Dataset(args.lsm_downs, 'r')
+    # Access latitude, longitude, and elevation data
+    latlc = lc_file.variables['y'][:]
+    lonlc = lc_file.variables['x'][:]
+    lc_val = lc_file.variables['Band1'][:]
+      
+    lc_file.close()
+    latlc = np.array(latlc)
+    lonlc = np.array(lonlc)
+    lc_val = np.array(lc_val)
+
+    #lcdem = np.zeros_like(elev)
+    # lat & lon are 1-d when elev is 2d, modify to 2d
+    lonlc, latlc = np.meshgrid(lonlc, latlc)
+    # convert Lambert Conformal Conic projection
+    lon_0 = 15  # Central meridian
+    lat_0 = 63.3  # Reference latitude
+    lat_1 = 63.3  # First standard parallel
+    lat_2 = 63.3  # Second standard parallel
+    # Create a projection object for the Lambert Conformal Conic projection
+    lcc_proj = Proj(proj='lcc', lon_0=lon_0, lat_0=lat_0, lat_1=lat_1, lat_2=lat_2)
+    # Define the target coordinate system (decimal degrees)
+    target_proj = Proj(proj='latlong', datum='WGS84')
+    # Transform Lambert Conformal Conic coordinates to decimal degrees
+    lonlc, latlc = transform(lcc_proj, target_proj, lonlc, latlc)
+
     # create a grid class needed in gridpp
-    griddem = gridpp.Grid(lat, lon , elev , lcdem)
+    griddem = gridpp.Grid(lat, lon , elev , lc_val)
     
     # do the downscaling to 1km
-    grid
     if args.parameter == "temperature":
         # choose a constant gradient 
         gradient = -0.0065 # C/m
@@ -542,10 +566,14 @@ def main():
     background0 = grid1km0
 
     # Interpolate ML point forecasts for bias correction + 0h analysis time
-    #print(len(ml_fcst))
-    #print(ml_fcst[0].shape) 
-    #print(ml_fcst[0].head(5))
-    # exit()
+    # Add lsm info to obs points from 1km lsm mask since obs don't have that info
+    lsm_point = gridpp.nearest(griddem, points, lc_val)
+    points = gridpp.Points(
+        obs["latitude"].to_numpy(),
+        obs["longitude"].to_numpy(),
+        obs["elevation"].to_numpy(),
+        lsm_point,
+    )
     diff = interpolate(griddem, points, background0[0], ml_fcst, args, lcdem)
     oit = time.time()
     timedif = oit - mlt
