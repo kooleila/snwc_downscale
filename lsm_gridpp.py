@@ -261,7 +261,8 @@ def main():
     elif args.parameter == "humidity":
         grid1km = gridpp.bilinear(grid, griddem, background)
     else:
-        grid1km = gridpp.nearest(grid, griddem, background)
+        grid1km = gridpp.bilinear(grid, griddem, background)
+        # grid1km = gridpp.nearest(grid, griddem, background)
     
     grid1km0 = copy.copy(grid1km)
     grid1km0[grid1km0 != 0] = 0
