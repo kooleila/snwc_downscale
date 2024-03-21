@@ -43,7 +43,10 @@ def parse_command_line():
     parser.add_argument("--output", action="store", type=str, required=True)
     parser.add_argument("--plot", action="store_true", default=False)
     parser.add_argument("--disable_multiprocessing", action="store_true", default=True)
-
+    parser.add_argument("--lat1", action="store", type=int, default=55)
+    parser.add_argument("--lat2", action="store", type=int, default=72)
+    parser.add_argument("--lon1", action="store", type=int, default=0)
+    parser.add_argument("--lon2", action="store", type=int, default=35)
     args = parser.parse_args()
 
     allowed_params = ["temperature", "humidity", "windspeed", "gust"]
@@ -297,10 +300,10 @@ def main():
     vmax = 12 #np.amax(background_orig)
     vmin1 = -5
     vmax1 = 5
-    lt1 = 67.75
-    lt2 = 68.5
-    ln1 = 23.3
-    ln2 = 24.5
+    lt1 = args.lat1 #67.75
+    lt2 = args.lat2 #68.5
+    ln1 = args.lon1 #23.3
+    ln2 = args.lon2 #24.5
 
     plt.figure(1)
     plt.figure(figsize=(10, 6), dpi=80)
@@ -401,144 +404,6 @@ def main():
 
     plt.savefig("obs_gridd_" + args.parameter + ".png")
         
-
-    exit()
-    # Assuming you have the true values in 'y_true' and the predicted values in 'y_pred'
-    #r2 = r2_score(y_true, y_pred)
-    #rmse = mean_squared_error(y_true, y_pred, squared=False)
-
-    ##print("R2:", r2)
-    #print("RMSE:", rmse)
-    
-    #oit = time.time()
-    #timedif = oit - mlt
-    #print("Interpolating forecasts takes:", round(timedif, 1), "seconds")
-    # calculate the final bias corrected forecast fields: MNWC - bias_correction
-    # and convert parameter to T-K or RH-0TO1
-    print(obs.columns)
-    output = []
-    tmp_output = background[1] - diff
-    # Implement simple QC thresholds
-    if args.parameter == "humidity":
-        tmp_output = np.clip(tmp_output, 5, 100)  # min RH 5% !
-        tmp_output = tmp_output / 100
-    elif args.parameter == "windspeed":
-        tmp_output = np.clip(tmp_output, 0, 38)  # max ws same as in oper qc: 38m/s
-    elif args.parameter == "gust":
-        tmp_output = np.clip(tmp_output, 0, 50)
-    elif args.parameter == "temperature":
-        tmp_output = tmp_output + 273.15
-    output = tmp_output
-
-    # Remove analysistime (leadtime=0), because correction is not made for that time
-    forecasttime.pop(0)
-    #assert len(forecasttime) == len(output)
-    # check for missing data in output
-    if np.isnan(output).any() or np.any(output == None):
-        print("Bias correction output contains NaN/None values")
-        # replace nan/None with missing data in grib 9999
-        output = np.where(np.isnan(output) | (output == None), 9999, output)
-        # exit()
-    #write_grib(args, analysistime, forecasttime, output)
-
-    # plot the results
-    vmin = np.amin(background_orig)
-    vmax = np.amax(background_orig)
-    print("vmin:", vmin)
-    print("vmax:", vmax)
-
-    vmin1 =  np.amin(output)
-    vmax1 =  np.amax(output)
-    print("vmin:", vmin1)
-    print("vmax:", vmax1)
-
-    obs_diff = gridpp.nearest(griddem, points, diff)
-    plt.figure(figsize=(17, 6), dpi=80)
-    plt.subplot(1, 4, 1)
-    plt.pcolormesh(
-        np.asarray(lons),
-        np.asarray(lats),
-        background_orig[1],
-        cmap="Spectral_r",  # "RdBu_r",
-        vmin=vmin,
-        vmax=vmax
-    )
-
-    plt.xlim(0, 35)
-    plt.ylim(55, 75)
-    cbar = plt.colorbar(
-        label="MNWC " +  "h " + args.parameter, orientation="horizontal"
-    )
-
-    plt.subplot(1, 4, 2)
-    """
-        plt.pcolormesh(
-            np.asarray(lon),
-            np.asarray(lat),
-            diff[k],
-            cmap="RdBu_r",
-            vmin=-5,
-            vmax=5,
-        )
-
-        """
-    plt.scatter(
-        obs["longitude"],
-        obs["latitude"],
-        s=10,
-        c=diff_point,
-        cmap="RdBu_r",
-        vmin=(-5),
-        vmax=5,
-    )
-        #"""
-    plt.xlim(0, 35)
-    plt.ylim(55, 75)
-    cbar = plt.colorbar(
-        label="mnwc - obs " + "h " + args.parameter, orientation="horizontal"
-    )
-
-        
-    plt.subplot(1, 4, 3)
-    plt.scatter(
-        obs["longitude"],
-        obs["latitude"],
-        s=10,
-        #c=obs_diff["WS1bias"], 
-        c=obs_diff,
-        #c=ml_fcst[k]["biasc"],
-        cmap="RdBu_r",
-        vmin=(-5),
-        vmax=5,
-        )
-        #"""
-    plt.xlim(0, 35)
-    plt.ylim(55, 75)
-    cbar = plt.colorbar(
-        label="Diff to obs points " + "h " + args.parameter, orientation="horizontal"
-    )
-        
-    plt.subplot(1, 4, 4)
-    plt.pcolormesh(
-        np.asarray(lon),
-        np.asarray(lat),
-        diff,
-        cmap="RdBu_r",
-        vmin=-5,
-        vmax=5,
-    )
-    plt.xlim(0, 35)
-    plt.ylim(55, 75)
-    cbar = plt.colorbar(
-        label="Diff " + "h " + args.parameter, orientation="horizontal"
-    )
-
-    # plt.show()
-    plt.savefig("testi_" + args.parameter + ".png")
-
-
-    if args.plot:
-        plot(obs, background, output, diff, lons, lats, args)
 
 if __name__ == "__main__":
     main()
