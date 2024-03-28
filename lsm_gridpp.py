@@ -43,10 +43,10 @@ def parse_command_line():
     parser.add_argument("--output", action="store", type=str, required=True)
     parser.add_argument("--plot", action="store_true", default=False)
     parser.add_argument("--disable_multiprocessing", action="store_true", default=True)
-    parser.add_argument("--lat1", action="store", type=int, default=55)
-    parser.add_argument("--lat2", action="store", type=int, default=72)
-    parser.add_argument("--lon1", action="store", type=int, default=0)
-    parser.add_argument("--lon2", action="store", type=int, default=35)
+    parser.add_argument("--lat1", action="store", type=float, default=55)
+    parser.add_argument("--lat2", action="store", type=float, default=72)
+    parser.add_argument("--lon1", action="store", type=float, default=0)
+    parser.add_argument("--lon2", action="store", type=float, default=35)
     args = parser.parse_args()
 
     allowed_params = ["temperature", "humidity", "windspeed", "gust"]

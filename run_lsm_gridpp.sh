@@ -4,6 +4,7 @@
 #python3.9 --version
 
 #cd /home/users/hietal/statcal/python_projects/snwc_bc/
+# bash run_lsm_gridpp.sh WS --lat1 59 --lat2 60 --lon1 21 --lon2 23
 
 parameter=$1 # T2m, RH, WS or WG
 #lat1=$2 # first latitude for plotting
